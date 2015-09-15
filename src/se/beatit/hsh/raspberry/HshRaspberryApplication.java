@@ -1,9 +1,12 @@
 package se.beatit.hsh.raspberry;
 
+import java.util.ArrayList;
+import java.util.List;
 import se.beatit.hsh.raspberry.util.MinuteTimer;
 import se.beatit.hsh.raspberry.util.UpdateSender;
 import se.beatit.hsh.raspberry.util.Logger;
 import se.beatit.hsh.raspberry.listener.ElectricCabinetListener;
+import se.beatit.hsh.raspberry.listener.TemperatureListener;
 import se.beatit.hsh.raspberry.restclient.HshRestClient;
 
 /**
@@ -33,6 +36,11 @@ public class HshRaspberryApplication  {
         ioTRestClient.close();
 
         ElectricCabinetListener elskapListener = new ElectricCabinetListener();
+        
+        List<TemperatureListener> tempListeners = new ArrayList<TemperatureListener>();
+        tempListeners.add(new TemperatureListener("28-0014111ab1ff", "outside"));
+        tempListeners.add(new TemperatureListener("28-0014118b77ff", "inside"));
+        
         MinuteTimer minuteTimer = new MinuteTimer();
         
         Logger.log("HshRaspberryApplication is now running and listens to GPIO #02 circuit.");
@@ -46,6 +54,9 @@ public class HshRaspberryApplication  {
                     UpdateSender sender = new UpdateSender(home, restBaseUri, elskapListener, 
                             MAX_SEND_RETRIES, SEND_RETRY_DELAY);
                     sender.sendUpdate(elskapListener.getWhSinceLast());
+                    for(TemperatureListener t: tempListeners) {
+                        Logger.log("Got temperature: " + t.getCurrentTemperature() + " for location " + t.getLocation());
+                    }
                 }
             } catch(Exception e) {
                 Logger.log("Unexpected error ocurred " + e.toString());
