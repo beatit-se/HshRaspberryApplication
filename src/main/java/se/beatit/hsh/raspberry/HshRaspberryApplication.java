@@ -31,9 +31,9 @@ public class HshRaspberryApplication  {
         String home = args[0];
         String restBaseUri = args[1];
         
-        HshRestClient ioTRestClient = new HshRestClient(restBaseUri);
-        ioTRestClient.createHome(home);
-        ioTRestClient.close();
+        //HshRestClient ioTRestClient = new HshRestClient(restBaseUri);
+        //ioTRestClient.createHome(home);
+        //ioTRestClient.close();
 
         ElectricCabinetListener elskapListener = new ElectricCabinetListener();
         

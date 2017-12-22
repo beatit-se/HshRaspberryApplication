@@ -10,7 +10,7 @@ public class UpdateSender implements Runnable {
     private static long totalWhSent = 0;
     
     private final String home;
-    private final HshRestClient ioTRestClient; 
+    //private final HshRestClient ioTRestClient;
     private final UpdateSenderFailCallback failSendBack;
     private final int maxSendRetries;
     private final int sendRetryDelay;
@@ -24,7 +24,7 @@ public class UpdateSender implements Runnable {
         this.maxSendRetries = maxSendRetries;
         this.sendRetryDelay = sendRetryDelay;
         
-        ioTRestClient = new HshRestClient(restBaseUri);
+        //ioTRestClient = new HshRestClient(restBaseUri);
     }
     
     public void sendUpdate(long wh) {
@@ -39,7 +39,7 @@ public class UpdateSender implements Runnable {
     public void run() {
         for(int i=0; i<maxSendRetries; i++) {
             try {    
-                ioTRestClient.addUsage(home, String.valueOf(whToSend));
+                //ioTRestClient.addUsage(home, String.valueOf(whToSend));
                 Logger.log("IO Pin reported usage update: " + whToSend + 
                         "wh. Total since start:" + UpdateSender.totalWhSent + 
                         "wh (send retries: " + i + ")"); 
@@ -57,6 +57,6 @@ public class UpdateSender implements Runnable {
                 }
             }            
         }
-        ioTRestClient.close();
+        //ioTRestClient.close();
     }   
 }
