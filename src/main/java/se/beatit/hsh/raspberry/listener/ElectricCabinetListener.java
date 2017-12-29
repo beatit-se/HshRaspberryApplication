@@ -8,15 +8,19 @@ import com.pi4j.io.gpio.PinState;
 import com.pi4j.io.gpio.RaspiPin;
 import com.pi4j.io.gpio.event.GpioPinDigitalStateChangeEvent;
 import com.pi4j.io.gpio.event.GpioPinListenerDigital;
-import se.beatit.hsh.raspberry.util.UpdateSenderFailCallback;
+import org.springframework.stereotype.Component;
 
 /**
  *
 @author Stefan Nilsson
  */
-public class ElectricCabinetListener implements GpioPinListenerDigital, UpdateSenderFailCallback {
+@Component
+public class ElectricCabinetListener implements GpioPinListenerDigital {
     
     private PinState previousPinState = PinState.LOW;
+
+    private long lastChangedState = 0L;
+    private long currentUsage = 0L;
     
     private long wh = 0;
     
@@ -37,6 +41,11 @@ public class ElectricCabinetListener implements GpioPinListenerDigital, UpdateSe
             previousPinState = event.getState();
             if(event.getState() == PinState.HIGH) {
                 wh++;
+
+                long now = System.currentTimeMillis();
+                long delay = now - lastChangedState;
+                currentUsage = (60000L / delay) * 60L;
+                lastChangedState = now;
             }
         }
     }
@@ -47,9 +56,8 @@ public class ElectricCabinetListener implements GpioPinListenerDigital, UpdateSe
         return lastWh;
     }
 
-    @Override
-    public void failedToSendUpdate(long failedWh) {
-        this.wh += failedWh;
+    public long getCurrentUsage() {
+        return currentUsage;
     }
            
 }

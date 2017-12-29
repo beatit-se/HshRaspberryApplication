@@ -9,19 +9,18 @@ import java.io.BufferedReader;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
-import se.beatit.hsh.raspberry.util.UpdateSenderFailCallback;
 
 /**
  *
  * @author stefan
  */
-public class TemperatureListener implements UpdateSenderFailCallback {
+public abstract class TemperatureListener {
 
     private String device;
     private String location;
     private String fileName;
     
-    public TemperatureListener(String device, String location) {
+    protected TemperatureListener(String device, String location) {
         this.device = device;
         this.location = location;
         this.fileName = "/sys/bus/w1/devices/" + device + "/w1_slave";
@@ -58,11 +57,6 @@ public class TemperatureListener implements UpdateSenderFailCallback {
             System.out.println("Error reading file '" + fileName + "'");                   
         }
         return 0.0F;
-    }
-    
-    @Override
-    public void failedToSendUpdate(long wh) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
     
 }
