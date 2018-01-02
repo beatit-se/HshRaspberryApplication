@@ -2,11 +2,14 @@ package se.beatit.hsh.raspberry.services;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import se.beatit.hsh.raspberry.entities.Measurement;
 import se.beatit.hsh.raspberry.listener.TempInListener;
 import se.beatit.hsh.raspberry.listener.TempOutListener;
+import se.beatit.hsh.raspberry.repositories.MeasurementRepository;
 import se.beatit.hsh.raspberry.util.Logger;
 
 import java.time.LocalDateTime;
+import java.util.Date;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -22,21 +25,19 @@ public class StatisticsService extends TimerTask {
     private TempInListener tempInListener;
     private TempOutListener tempOutListener;
 
-    private Float coldestInside;
-    private Float warmestInside;
-    private Float coldestOutside;
-    private Float warmestOutside;
-    private Long highestW;
-    private Long lowestW;
+    private MeasurementRepository measurementRepository;
+
+    private Date latestMeasurement = null;
 
     @Autowired
-    public StatisticsService(ElectricCabinetListener electricCabinetListener, TempInListener tempInListener, TempOutListener tempOutListener) {
+    public StatisticsService(ElectricCabinetListener electricCabinetListener, TempInListener tempInListener,
+                             TempOutListener tempOutListener, MeasurementRepository measurementRepository) {
         this.electricCabinetListener = electricCabinetListener;
         this.tempInListener = tempInListener;
         this.tempOutListener = tempOutListener;
+        this.measurementRepository = measurementRepository;
 
         Logger.log("HshRaspberryApplication starting ...");
-
 
         Timer timer = new Timer(true);
         timer.scheduleAtFixedRate(this, (60-LocalDateTime.now().getSecond())*1000, 60*1000);
@@ -49,59 +50,31 @@ public class StatisticsService extends TimerTask {
     public void run() {
         Logger.log("In! " + LocalDateTime.now().toString());
 
-        if(coldestInside == null || coldestInside > tempInListener.getCurrentTemperature()) {
-            coldestInside = tempInListener.getCurrentTemperature();
+        if(latestMeasurement == null) {
+            electricCabinetListener.getWhSinceLast();
+            latestMeasurement = new Date();
+            return;
         }
 
-        if(warmestInside == null || warmestInside < tempInListener.getCurrentTemperature()) {
-            warmestInside = tempInListener.getCurrentTemperature();
-        }
-
-        if(coldestOutside == null || coldestOutside > tempOutListener.getCurrentTemperature()) {
-            coldestOutside = tempOutListener.getCurrentTemperature();
-        }
-
-        if(warmestOutside == null || warmestOutside < tempOutListener.getCurrentTemperature()) {
-            warmestOutside = tempOutListener.getCurrentTemperature();
-        }
-
+        Date now = new Date();
         long whSinceLast = electricCabinetListener.getWhSinceLast();
-        long currentWUsage = (whSinceLast * 60);
+        long currentWUsage = whSinceLast * 60;
 
-        if(highestW == null || highestW < currentWUsage) {
-            highestW = currentWUsage;
-        }
+        Measurement measurement = new Measurement();
+        measurement.setFromDate(latestMeasurement);
+        measurement.setToDate(now);
+        latestMeasurement = now;
 
-        if(lowestW == null || lowestW < currentWUsage) {
-            lowestW = currentWUsage;
-        }
+        measurement.setInTemp(tempInListener.getCurrentTemperature());
+        measurement.setOutTemp(tempOutListener.getCurrentTemperature());
+        measurement.setWattHoursUsed(whSinceLast);
+        measurement.setAvarageWatt(currentWUsage);
+
+        measurementRepository.save(measurement);
 
         Logger.log("W usage " + currentWUsage +
-        " In temp: " + tempInListener.getCurrentTemperature() +
-        " Out temp " + tempOutListener.getCurrentTemperature());
+            " In temp: " + tempInListener.getCurrentTemperature() +
+            " Out temp " + tempOutListener.getCurrentTemperature());
     }
 
-    public Float getColdestInside() {
-        return coldestInside;
-    }
-
-    public Float getWarmestInside() {
-        return warmestInside;
-    }
-
-    public Float getColdestOutside() {
-        return coldestOutside;
-    }
-
-    public Float getWarmestOutside() {
-        return warmestOutside;
-    }
-
-    public Long getHighestW() {
-        return highestW;
-    }
-
-    public Long getLowestW() {
-        return lowestW;
-    }
 }
