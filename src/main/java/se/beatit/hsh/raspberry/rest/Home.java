@@ -1,6 +1,7 @@
 package se.beatit.hsh.raspberry.rest;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -23,6 +24,7 @@ import java.util.Date;
  */
 @RestController
 @RequestMapping("/home")
+@ConditionalOnProperty(value = "gpio-conf.statistics", havingValue = "true", matchIfMissing = true)
 public class Home {
 
     private MeasurementRepository measurementRepository;
@@ -42,38 +44,48 @@ public class Home {
 
     @RequestMapping(method = RequestMethod.GET, value = "")
     public String getHome() {
-        ZonedDateTime zonedDateTime = ZonedDateTime.now().withHour(0).withMinute(0).withSecond(0);
-        Date from = new Date(zonedDateTime.toInstant().toEpochMilli());
-        Date to = new Date();
+        ZonedDateTime zdtStartOfToday = ZonedDateTime.now().withHour(0).withMinute(0).withSecond(0);
+        ZonedDateTime zdtStartOfMonth = ZonedDateTime.now().withDayOfMonth(1).withHour(0).withMinute(0).withSecond(0);
 
-        Logger.log("Getting data from " + SimpleDateFormat.getDateInstance().format(from) + " to " + SimpleDateFormat.getDateInstance().format(to));
+        Date startOfToday = new Date(zdtStartOfToday.toInstant().toEpochMilli());
+        Date startOfMonth = new Date(zdtStartOfMonth.toInstant().toEpochMilli());
+        Date now = new Date();
 
-        Page<Measurement> minTempResult = measurementRepository.findMinOutTemp(from, to, createPageRequest());
+
+        Logger.log("Getting data from " + SimpleDateFormat.getDateInstance().format(startOfToday) + " to " + SimpleDateFormat.getDateInstance().format(now));
+
+        Page<Measurement> minTempResult = measurementRepository.findMinOutTemp(startOfToday, now, createPageRequest());
         Measurement minOutTemp = minTempResult.iterator().next();
 
-        Page<Measurement> maxTempResult = measurementRepository.findMaxOutTemp(from, to, createPageRequest());
+        Page<Measurement> maxTempResult = measurementRepository.findMaxOutTemp(startOfToday, now, createPageRequest());
         Measurement maxOutTemp = maxTempResult.iterator().next();
 
-        /*
-        Page<Measurement> minInTempResult = measurementRepository.findMinInTemp(from, to, createPageRequest());
+        Page<Measurement> minInTempResult = measurementRepository.findMinInTemp(startOfToday, now, createPageRequest());
         Measurement minInTemp = minInTempResult.iterator().next();
 
-        Page<Measurement> maxInTempResult = measurementRepository.findMaxInTemp(from, to, createPageRequest());
+        Page<Measurement> maxInTempResult = measurementRepository.findMaxInTemp(startOfToday, now, createPageRequest());
         Measurement maxInTemp = maxInTempResult.iterator().next();
-        */
 
-        Page<Measurement> minWattUsageResult = measurementRepository.findMinWattUsage(from, to, createPageRequest());
+        Page<Measurement> minWattUsageResult = measurementRepository.findMinWattUsage(startOfToday, now, createPageRequest());
         Measurement minWat = minWattUsageResult.iterator().next();
 
-        Page<Measurement> maxWattUsageResult = measurementRepository.findMaxWattUsage(from, to, createPageRequest());
+        Page<Measurement> maxWattUsageResult = measurementRepository.findMaxWattUsage(startOfToday, now, createPageRequest());
         Measurement maxWat = maxWattUsageResult.iterator().next();
 
-        return "<h1>Current Watt usage " + electricCabinetListener.getCurrentUsage()  + "</h1>" +
-                "<h2>(Max: " + maxWat.getAvarageWatt() + " Min: " + minWat.getAvarageWatt() + ")<h2>" +
+        Long wattHoursUsed = measurementRepository.findWattHoursUsed(startOfToday, now);
+        Long averageWattUsage = measurementRepository.getAverageWattUsage(startOfToday, now);
+        Float averageOutTemp = measurementRepository.getAverageOutTemp(startOfToday, now);
+        Float averageInTemp = measurementRepository.getAverageInTemp(startOfToday, now);
+
+        return "<h1>Current Outside temp " + tempOutListener.getCurrentTemperature()  + "</h1>" +
+                "<h3>(Max: " + maxOutTemp.getOutTemp() + ", min: " + minOutTemp.getOutTemp() + ", average: " + averageOutTemp + ")<h3>" +
                 "<h1>Current Inside temp " + tempInListener.getCurrentTemperature()  + "</h1>" +
-               // "<h2>(Max: " + mainService.getWarmestInside() + " Min: " + mainService.getColdestInside() + ")<h2>" +
-                "<h1>Current Outside temp " + tempOutListener.getCurrentTemperature()  + "</h1>" +
-                "<h2>(Max: " + maxOutTemp.getOutTemp() + " Min: " + minOutTemp.getOutTemp() + ")<h2>";
+                "<h3>(Max: " + maxInTemp.getInTemp() + ", min: " + minInTemp.getInTemp() + ", average: " + averageInTemp + ")<h3>" +
+                "<h1>Current Watt usage " + electricCabinetListener.getCurrentUsage()  + "</h1>" +
+                "<h3>(Max: " + maxWat.getAvarageWatt() + ", min: " + minWat.getAvarageWatt() + ", average: " + averageWattUsage + ", watt hours used: " + wattHoursUsed + ")<h3>" +
+                "---------------------------------------------------------" +
+                "<h3>Watt hours used this month: " + measurementRepository.findWattHoursUsed(startOfMonth, now) + "</h3>" +
+                "<h3>Average outside temp: " + measurementRepository.getAverageOutTemp(startOfMonth, now) + "</h3>";
     }
 
     private Pageable createPageRequest() {

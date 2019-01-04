@@ -1,6 +1,7 @@
 package se.beatit.hsh.raspberry.services;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Service;
 import se.beatit.hsh.raspberry.entities.Measurement;
 import se.beatit.hsh.raspberry.listener.TempInListener;
@@ -19,6 +20,7 @@ import se.beatit.hsh.raspberry.listener.ElectricCabinetListener;
  * Created by stefan on 12/27/17.
  */
 @Service
+@ConditionalOnProperty(value = "gpio-conf.statistics", havingValue = "true", matchIfMissing = true)
 public class StatisticsService extends TimerTask {
 
     private ElectricCabinetListener electricCabinetListener;

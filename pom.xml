@@ -26,6 +26,52 @@
           <version>1.1.7</version>
       </dependency>
 
+
+      <!-- JSTL tag lib -->
+     <!-- <dependency>
+          <groupId>javax.servlet.jsp.jstl</groupId>
+          <artifactId>javax.servlet.jsp.jstl-api</artifactId>
+          <version>1.2.1</version>
+      </dependency>
+
+      <dependency>
+          <groupId>taglibs</groupId>
+          <artifactId>standard</artifactId>
+          <version>1.1.2</version>
+      </dependency>-->
+
+      <!--
+      <dependency>
+          <groupId>org.springframework.boot</groupId>
+          <artifactId>spring-boot-starter-tomcat</artifactId>
+          <scope>provided</scope>
+      </dependency>
+      -->
+
+      <!-- Tomcat for JSP rendering -->
+      <!--
+      <dependency>
+          <groupId>org.apache.tomcat.embed</groupId>
+          <artifactId>tomcat-embed-jasper</artifactId>
+      </dependency>
+      -->
+      <dependency>
+          <groupId>org.apache.tomcat.embed</groupId>
+          <artifactId>tomcat-embed-jasper</artifactId>
+      </dependency>
+
+      <dependency>
+          <groupId>javax.servlet</groupId>
+          <artifactId>jstl</artifactId>
+      </dependency>
+
+      <!-- Webjars for Bootstrap -->
+      <dependency>
+          <groupId>org.webjars</groupId>
+          <artifactId>bootstrap</artifactId>
+          <version>3.3.7</version>
+      </dependency>
+
     <!-- https://mvnrepository.com/artifact/com.pi4j/pi4j-core -->
     <dependency>
       <groupId>com.pi4j</groupId>
@@ -57,6 +103,7 @@
       <artifactId>jersey-client</artifactId>
       <version>2.5.1</version>
     </dependency>
+
   </dependencies>
 
   <build>

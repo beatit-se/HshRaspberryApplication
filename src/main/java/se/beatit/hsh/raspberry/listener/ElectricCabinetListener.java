@@ -8,6 +8,7 @@ import com.pi4j.io.gpio.PinState;
 import com.pi4j.io.gpio.RaspiPin;
 import com.pi4j.io.gpio.event.GpioPinDigitalStateChangeEvent;
 import com.pi4j.io.gpio.event.GpioPinListenerDigital;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 
 /**
@@ -15,6 +16,7 @@ import org.springframework.stereotype.Component;
 @author Stefan Nilsson
  */
 @Component
+@ConditionalOnProperty(value = "gpio-conf.enable-electic-cabinet", havingValue = "true", matchIfMissing = true)
 public class ElectricCabinetListener implements GpioPinListenerDigital {
     
     private PinState previousPinState = PinState.LOW;
